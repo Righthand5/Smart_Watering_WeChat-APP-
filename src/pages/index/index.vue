@@ -41,18 +41,18 @@
         <div class="data-text">
           <div class="data-title">LED</div>
           <div class="data-value">
-            <switch color="#3d7ef9"/>
+            <switch @change="onLedChange" :checked="Led" color="#3d7ef9"/>
           </div>
         </div>
       </div>
       </div>
       <div class="data-wrapper">
        <div class="data">
-        <img class="data-logo" src="/static/images/beep.png"/>
+        <img class="data-logo" src="/static/images/Shower.png"/>
         <div class="data-text">
-          <div class="data-title">报警器</div>
+          <div class="data-title">洒水器</div>
           <div class="data-value">
-            <switch color="#3d7ef9"/>
+            <switch @change="onShowerChange" :checked="Shower" color="#3d7ef9"/>
           </div>
         </div>
       </div>
@@ -72,24 +72,57 @@ export default {
       Temp:0,
       Hum:0,
       Light:0,
-      led:false,
-      Beep:false,
+      Led:false,
+      Shower:false,
     }
   },
 
   components: {
-    
+
   },
 
   methods: {
-   
+      onLedChange(event){
+        let that = this
+        let sw = event.mp.detail.value;
+        if(sw){
+          that.client.publish('/mysmarthome/sub','LED_SW:1',function (err){
+            if(!err){
+              console.log('成功下发命令——开灯')
+            }
+          })
+        }else{
+          that.client.publish('/mysmarthome/sub','LED_SW:0',function (err){
+            if(!err){
+              console.log('成功下发命令——关灯')
+            }
+          })
+        }
+      },
+      onShowerChange(event){
+        let that = this
+        let sw = event.mp.detail.value;
+        if(sw){
+          that.client.publish('/mysmarthome/sub','Shower_SW:1',function (err){
+            if(!err){
+              console.log('成功下发命令——洒水')
+            }
+          })
+        }else{
+          that.client.publish('/mysmarthome/sub','Shower_SW:0',function (err){
+            if(!err){
+              console.log('成功下发命令——关水')
+            }
+          })
+        }
+      }
   },
 
   created () {
     // let app = getApp()
   },
   onShow(){
-    var that = this;
+    let that = this;
     that.client = connect(mqttUrl);
     that.client.on('connect',function(){
       console.log("成功连接mqtt服务器!")
@@ -110,6 +143,8 @@ export default {
       that.Temp = dataFromDev.Temp
       that.Hum = dataFromDev.Hum
       that.Light = dataFromDev.Light
+      that.Led = dataFromDev.Led
+      that.Shower = dataFromDev.Shower
     })
 
   }
