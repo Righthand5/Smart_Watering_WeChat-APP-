@@ -2,14 +2,14 @@
 <div class="wrapper">
     <div class="header-wrapper">
       <div class="header-title">
-      <span>空气质量-良好</span>
-      <span>杭州市</span>
+      <span>空气质量-{{AirText}}</span>
+      <span>{{Area}}-{{City}}</span>
       </div>
       <div class="header-text">
-      <span>55</span>
-      <span>阴天</span>
+      <span>{{AirValue}}</span>
+      <span>{{weather}}</span>
       </div>
-      <div class="weather-advice">空气质量良好，健康人群外出无需可以防护</div>
+      <div class="weather-advice">{{weatherAdvice}}</div>
     </div>
   <div class="body-wrapper">
     <div class="data-wrapper">
@@ -64,7 +64,6 @@
 import card from '@/components/card'
 import {connect} from 'mqtt/dist/mqtt'
 const mqttUrl='wxs://mqtt.xyxlzqq.top:8084/mqtt'
-
 export default {
   data () {
     return {
@@ -74,13 +73,16 @@ export default {
       Light:0,
       Led:false,
       Shower:false,
+      Area:'请求中',
+      City:'请求中',
+      AirText:'请求中',//空气优良
+      AirValue:0,//空气指数
+      weather:'请求中',//天气
+      weatherAdvice:'请求中'//天气建议
     }
   },
-
   components: {
-
   },
-
   methods: {
       onLedChange(event){
         let that = this
@@ -117,9 +119,7 @@ export default {
         }
       }
   },
-
   created () {
-    // let app = getApp()
   },
   onShow(){
     let that = this;
@@ -135,8 +135,6 @@ export default {
     })
     that.client.on("message",function(topic,message){
       console.log(topic);
-      //console.log(message);
-      //message是十六进制的buf流
       let dataFromDev = {}
       dataFromDev = JSON.parse(message)
       console.log(dataFromDev)
@@ -145,6 +143,44 @@ export default {
       that.Light = dataFromDev.Light
       that.Led = dataFromDev.Led
       that.Shower = dataFromDev.Shower
+    });
+    wx.getLocation({
+      type: 'wgs84',
+      success (res) {
+        const  type = 0;
+        const latitude = res.latitude
+        const longitude = res.longitude
+        const key = '8247bd295aed49f0a75787bf24cd932b'
+        wx.request({
+          url: `https://devapi.qweather.com/v7/weather/now?location=${longitude},${latitude}&key=${key}`, //仅为示例，并非真实的接口地址
+          success (res) {
+            const {now}=res.data
+            that.weather = now.text
+          }
+        })
+        wx.request({
+            url: `https://devapi.qweather.com/v7/air/now?location=${longitude},${latitude}&key=${key}`, //仅为示例，并非真实的接口地址
+            success (res) {
+              const {now}=res.data
+              that.AirValue = now.aqi
+              that.AirText = now.category
+            }
+          })
+        wx.request({
+          url: `https://geoapi.qweather.com/v2/city/lookup?location=${longitude},${latitude}&key=${key}`, //仅为示例，并非真实的接口地址
+          success (res) {
+            const {location} = res.data
+            that.Area = location[0].adm2
+            that.City = location[0].name
+          }
+        })
+        wx.request({
+          url: `https://devapi.qweather.com/v7/indices/1d?location=${longitude},${latitude}&key=${key}&type=${type}`, //仅为示例，并非真实的接口地址
+          success (res) {
+            that.weatherAdvice = res.data.daily[1].text
+          }
+        })
+      }
     })
 
   }

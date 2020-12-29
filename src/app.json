@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/login/main",
     "pages/index/main",
     "pages/logs/main"  ],
   "window": {
@@ -7,6 +8,11 @@
     "navigationBarBackgroundColor": "#fff",
     "navigationBarTitleText": "WeChat",
     "navigationBarTextStyle": "black"
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于天气效果展示"
+    }
   },
   "tabBar": {
     "color": "#999",
@@ -38,5 +44,9 @@
       "activeIcon": "static/tabs/orders-active.png"
     }],
     "position": "bottom"
+  },
+  "usingComponents": {
+    "van-button":"vant-weapp/dist/button/index",
+    "van-field": "vant-weapp/dist/field/index"
   }
 }
